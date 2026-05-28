@@ -32,7 +32,19 @@
   --shadow:0 2px 10px rgba(0,0,0,0.07);
 }
 
-body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+[data-theme="dark"] {
+  --bg: #0c0e0d;
+  --white: #141715;
+  --text: #f3f4f6;
+  --text-muted: #9ca3af;
+  --border: #1e2220;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --forest-pale: rgba(45, 106, 79, 0.15);
+  --sky-pale: rgba(0, 119, 182, 0.15);
+  --warn-pale: rgba(233, 196, 106, 0.12);
+}
+
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;transition: background-color 0.3s ease, color 0.3s ease;}
 
 /* ─── HEADER ─── */
 .site-header{
@@ -52,10 +64,26 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .header-pill strong{font-size:13px}
 
 /* ─── NAV ─── */
-.site-nav{background:white;border-bottom:1px solid var(--border);display:flex;position:sticky;top:0;z-index:900;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
-.nav-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:0.875rem 1.5rem;font-size:0.85rem;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;border-bottom:3px solid transparent;white-space:nowrap;background:none;transition:all 0.2s;letter-spacing:0.2px}
-.nav-tab:hover{color:var(--forest-mid);background:var(--forest-pale)}
-.nav-tab.active{color:var(--forest-mid);border-bottom-color:var(--forest-mid);background:var(--forest-pale)}
+.site-nav{
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+[data-theme="dark"] .site-nav {
+  background: rgba(20, 23, 21, 0.82);
+}
+.nav-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:0.875rem 1.5rem;font-size:0.85rem;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;border-bottom:3px solid transparent;white-space:nowrap;background:none;transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);letter-spacing:0.2px}
+.nav-tab:hover{color:var(--forest-mid);background:rgba(45, 106, 79, 0.05)}
+.nav-tab.active{color:var(--forest-mid);border-bottom-color:var(--forest-mid);background:rgba(45, 106, 79, 0.1)}
+[data-theme="dark"] .nav-tab:hover{color:var(--forest-light);background:rgba(82, 183, 136, 0.05)}
+[data-theme="dark"] .nav-tab.active{color:var(--forest-light);border-bottom-color:var(--forest-light);background:rgba(82, 183, 136, 0.1)}
 .tab-icon{font-size:1.1rem;display:inline-block;line-height:1}
 .tab-text{display:inline-block}
 
@@ -79,9 +107,20 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   display:grid;grid-template-columns:1fr 1fr;
   gap:2px;background:var(--border);
   border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
-  margin-bottom:2rem;box-shadow:var(--shadow)
+  margin-bottom:2rem;box-shadow:var(--shadow);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-.foda-cell{background:white;padding:1.25rem}
+.foda-cell{
+  background:var(--white);
+  padding:1.25rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+}
+.foda-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  z-index: 2;
+}
 .foda-cell-header{display:flex;align-items:center;gap:8px;margin-bottom:0.875rem}
 .foda-letter{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
 .foda-cell-title{font-size:0.95rem;font-weight:700}
@@ -107,7 +146,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 /* FODA cruzado */
 .cruzado-header{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--border)}
 .cruzado-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.cruzado-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;box-shadow:var(--shadow)}
+.cruzado-card{
+  background:var(--white);
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  padding:1.25rem;
+  box-shadow:var(--shadow);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.cruzado-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}
 .cruzado-card-header{display:flex;align-items:center;gap:8px;margin-bottom:0.875rem}
 .cruzado-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:800;flex-shrink:0}
 .cruzado-card-title{font-size:0.85rem;font-weight:600;color:var(--text-muted)}
@@ -208,6 +258,100 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .site-footer{background:var(--forest);color:rgba(255,255,255,0.7);text-align:center;padding:1.25rem;font-size:12px;margin-top:3rem}
 .site-footer strong{color:white}
 
+/* ─── DARK MODE MAP TILES & QR ─── */
+[data-theme="dark"] #map-container .leaflet-tile-container {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+[data-theme="dark"] #qrcode img {
+  filter: invert(90%) hue-rotate(180deg);
+  border-radius: 4px;
+}
+[data-theme="dark"] .badge-inst {
+  background: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .badge-fire {
+  background: var(--fire);
+}
+[data-theme="dark"] .foda-item {
+  border-left-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ─── THEME TOGGLE BUTTON ─── */
+.theme-toggle-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-toggle-btn:hover {
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.16);
+}
+.theme-toggle-btn:active {
+  transform: scale(0.95);
+}
+.theme-icon-dark {
+  display: none;
+}
+[data-theme="dark"] .theme-toggle-btn {
+  background: #1b4332;
+  border-color: #2d6a4f;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* ─── FIRE MARKER PULSE ANIMATION ─── */
+.fire-marker-container {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fire-emoji {
+  font-size: 20px;
+  line-height: 1;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  transition: transform 0.2s ease;
+}
+.fire-marker-container:hover .fire-emoji {
+  transform: scale(1.25);
+}
+.fire-pulse {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(230, 57, 70, 0.45);
+  box-shadow: 0 0 8px rgba(230, 57, 70, 0.7);
+  animation: fire-glow 1.8s infinite ease-out;
+  z-index: 1;
+}
+
+@keyframes fire-glow {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
 /* ─── LOGO UNTREF MODERNO ─── */
 .header-logo-bar{margin-bottom:1.25rem}
 .modern-logo-container {
@@ -259,12 +403,17 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1px;
-    background: var(--border);
+    background: rgba(0,0,0,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  [data-theme="dark"] .site-nav {
+    background: rgba(255,255,255,0.08);
   }
   .nav-tab {
     flex: none;
     width: 100%;
-    background: white;
+    background: rgba(255, 255, 255, 0.85);
     text-align: center;
     padding: 0.8rem 0.5rem;
     font-size: 0.78rem;
@@ -276,11 +425,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
     justify-content: center;
     gap: 6px;
   }
+  [data-theme="dark"] .nav-tab {
+    background: rgba(26, 29, 27, 0.85);
+  }
   .nav-tab.active {
-    background: var(--forest-pale);
+    background: rgba(45, 106, 79, 0.12);
     color: var(--forest-mid);
     border-bottom: none;
     font-weight: 700;
+  }
+  [data-theme="dark"] .nav-tab.active {
+    background: rgba(82, 183, 136, 0.15);
+    color: var(--forest-light);
   }
   
   .modern-logo-container {
@@ -669,6 +825,12 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   Pica · Garcia · Pabon
 </footer>
 
+<!-- Botón Flotante de Cambio de Tema (Dark/Light Mode) -->
+<button id="theme-toggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+  <span class="theme-icon-light">☀️</span>
+  <span class="theme-icon-dark">🌙</span>
+</button>
+
 <!-- ══════════════ SCRIPTS ══════════════ -->
 <!-- ══════════════ SCRIPTS ══════════════ -->
 <script>
@@ -679,6 +841,10 @@ function showTab(id, btn) {
   document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById('tab-' + id).classList.add('active');
   btn.classList.add('active');
+  
+  // Desplazamiento automático suave hacia arriba
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   if (id === 'stats') {
     if (!window._chartsInit) { setTimeout(initCharts, 50); }
     setTimeout(animateNumbers, 50);
@@ -737,8 +903,11 @@ function animateNumbers() {
 //   Incendios: geolocalizados desde noticias 2025-2026
 // ══════════════════════════════════════════════════════════
 function initMap() {
-  var map = L.map('map-container', { zoomControl: true }).setView([-41.1380, -71.3300], 12);
+  var map = L.map('map-container', { zoomControl: true });
   window._map = map;
+  
+  // Encajar automáticamente todo el ejido urbano y puntos calientes de Bariloche
+  map.fitBounds([[-41.180, -71.420], [-41.127, -71.250]], { padding: [15, 15] });
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -863,8 +1032,8 @@ function initMap() {
       desc:'Originado por quema de hojas secas. Destruyo el edificio historico en zona turistica proxima al lago. Fuente: Infobae 16/05/2026.' }
   ];
   var fireIcon = L.divIcon({
-    html: '<div style="font-size:20px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4))">&#128293;</div>',
-    className:'', iconSize:[24,24], iconAnchor:[12,20], popupAnchor:[0,-20]
+    html: '<div class="fire-marker-container"><div class="fire-pulse"></div><div class="fire-emoji">&#128293;</div></div>',
+    className:'', iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-15]
   });
   fires.forEach(function(f) {
     L.marker(f.pos, { icon: fireIcon })
@@ -990,6 +1159,33 @@ function initQR() {
     text: url, width: 160, height: 160,
     colorDark: '#1b4332', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+// ── Lógica de Modo Oscuro ──
+const themeToggle = document.getElementById('theme-toggle');
+themeToggle.addEventListener('click', function() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  let newTheme = 'light';
+  if (currentTheme !== 'dark') {
+    newTheme = 'dark';
+    document.documentElement.setAttribute('data-theme', 'dark');
+    themeToggle.querySelector('.theme-icon-light').style.display = 'none';
+    themeToggle.querySelector('.theme-icon-dark').style.display = 'block';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    themeToggle.querySelector('.theme-icon-light').style.display = 'block';
+    themeToggle.querySelector('.theme-icon-dark').style.display = 'none';
+  }
+  localStorage.setItem('theme', newTheme);
+});
+
+// Comprobar preferencia guardada al cargar
+if (localStorage.getItem('theme') === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('theme-toggle').querySelector('.theme-icon-light').style.display = 'none';
+    document.getElementById('theme-toggle').querySelector('.theme-icon-dark').style.display = 'block';
   });
 }
 
