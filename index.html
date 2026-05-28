@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión del Riesgo — Incendios de Interfase · Bariloche 2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --forest:#1b4332;
+  --forest-mid:#2d6a4f;
+  --forest-light:#52b788;
+  --forest-pale:#d8f3dc;
+  --fire:#e63946;
+  --fire-mid:#e76f51;
+  --fire-light:#f4a261;
+  --fire-pale:#fff1e6;
+  --sky:#0077b6;
+  --sky-pale:#caf0f8;
+  --warn:#e9c46a;
+  --warn-pale:#fff8e1;
+  --bg:#f4f4f0;
+  --white:#ffffff;
+  --text:#1a1a1a;
+  --text-muted:#6b7280;
+  --border:#e2e8e4;
+  --radius:10px;
+  --shadow:0 2px 10px rgba(0,0,0,0.07);
+}
+
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+
+/* ─── HEADER ─── */
+.site-header{
+  background:linear-gradient(135deg,var(--forest) 0%,var(--forest-mid) 100%);
+  color:white;padding:1.5rem 2rem;
+  border-bottom:4px solid var(--fire-mid);
+}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.header-top h1{font-size:1.35rem;font-weight:700;line-height:1.3;max-width:560px}
+.header-top h1 span{display:block;font-size:0.9rem;font-weight:400;opacity:0.85;margin-top:4px}
+.header-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:0.875rem}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:0.2px}
+.badge-inst{background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.35)}
+.badge-fire{background:var(--fire-mid);color:white}
+.header-pill{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:8px;padding:6px 12px;text-align:right;flex-shrink:0}
+.header-pill p{font-size:11px;opacity:0.8;line-height:1.5}
+.header-pill strong{font-size:13px}
+
+/* ─── NAV ─── */
+.site-nav{background:white;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;position:sticky;top:0;z-index:900;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+.nav-tab{padding:0.875rem 1.5rem;font-size:0.85rem;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;border-bottom:3px solid transparent;white-space:nowrap;background:none;transition:all 0.2s;letter-spacing:0.2px}
+.nav-tab:hover{color:var(--forest-mid);background:var(--forest-pale)}
+.nav-tab.active{color:var(--forest-mid);border-bottom-color:var(--forest-mid);background:var(--forest-pale)}
+
+/* ─── SECTIONS ─── */
+.section{display:none;padding:2rem;max-width:1160px;margin:0 auto}
+.section.active{display:block}
+.section-header{margin-bottom:1.5rem}
+.section-title{font-size:1.1rem;font-weight:700;color:var(--forest-mid);margin-bottom:0.4rem}
+.section-desc{font-size:0.85rem;color:var(--text-muted);line-height:1.7;max-width:780px}
+
+/* ─── MAP ─── */
+#map-container{height:520px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow)}
+.map-legend{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1rem 1.25rem;margin-top:1rem;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.legend-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-right:4px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-muted)}
+.leg-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,0.08)}
+.leg-poly{width:20px;height:13px;border-radius:3px;flex-shrink:0;opacity:0.7}
+
+/* ─── FODA ─── */
+.foda-classic-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:2px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  margin-bottom:2rem;box-shadow:var(--shadow)
+}
+.foda-cell{background:white;padding:1.25rem}
+.foda-cell-header{display:flex;align-items:center;gap:8px;margin-bottom:0.875rem}
+.foda-letter{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.foda-cell-title{font-size:0.95rem;font-weight:700}
+.foda-item{font-size:0.8rem;color:var(--text-muted);padding:5px 0 5px 10px;border-left:2px solid var(--border);margin-bottom:5px;line-height:1.5;transition:border-color 0.2s,color 0.2s}
+.foda-item:hover{color:var(--text)}
+
+.f-cell .foda-letter{background:var(--forest-pale);color:var(--forest-mid)}
+.f-cell .foda-item:hover{border-left-color:var(--forest-mid);color:var(--forest-mid)}
+.f-cell .foda-cell-title{color:var(--forest-mid)}
+
+.o-cell .foda-letter{background:var(--sky-pale);color:var(--sky)}
+.o-cell .foda-item:hover{border-left-color:var(--sky);color:var(--sky)}
+.o-cell .foda-cell-title{color:var(--sky)}
+
+.d-cell .foda-letter{background:var(--warn-pale);color:#b08500}
+.d-cell .foda-item:hover{border-left-color:#e9c46a;color:#b08500}
+.d-cell .foda-cell-title{color:#b08500}
+
+.a-cell .foda-letter{background:#fee2e2;color:var(--fire)}
+.a-cell .foda-item:hover{border-left-color:var(--fire);color:var(--fire)}
+.a-cell .foda-cell-title{color:var(--fire)}
+
+/* FODA cruzado */
+.cruzado-header{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid var(--border)}
+.cruzado-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cruzado-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;box-shadow:var(--shadow)}
+.cruzado-card-header{display:flex;align-items:center;gap:8px;margin-bottom:0.875rem}
+.cruzado-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:800;flex-shrink:0}
+.cruzado-card-title{font-size:0.85rem;font-weight:600;color:var(--text-muted)}
+.cruzado-card ul{list-style:none;padding:0}
+.cruzado-card ul li{font-size:0.78rem;color:var(--text-muted);padding:5px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.cruzado-card ul li:last-child{border-bottom:none}
+.cruzado-card ul li::before{content:'→ ';font-weight:700;opacity:0.5}
+
+.fo-badge{background:var(--forest-pale);color:var(--forest-mid)}
+.fo-card{border-top:3px solid var(--forest-light)}
+.do-badge{background:var(--sky-pale);color:var(--sky)}
+.do-card{border-top:3px solid var(--sky)}
+.fa-badge{background:var(--warn-pale);color:#b08500}
+.fa-card{border-top:3px solid var(--warn)}
+.da-badge{background:#fee2e2;color:var(--fire)}
+.da-card{border-top:3px solid var(--fire)}
+
+/* ─── STATS ─── */
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.75rem}
+.metric-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.1rem 1.25rem;box-shadow:var(--shadow)}
+.metric-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;font-weight:600;margin-bottom:0.5rem}
+.metric-value{font-size:2rem;font-weight:800;line-height:1;color:var(--forest-mid)}
+.metric-value.fire-val{color:var(--fire-mid)}
+.metric-value.warn-val{color:#b08500}
+.metric-unit{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4}
+.metric-src{font-size:10px;color:var(--border);margin-top:4px;font-style:italic}
+
+.chart-row{display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:1.75rem}
+.chart-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;box-shadow:var(--shadow)}
+.chart-card-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+.chart-card-title::before{content:'';display:block;width:4px;height:14px;border-radius:2px;background:var(--forest-light);flex-shrink:0}
+.chart-wrap{position:relative;width:100%}
+
+/* Timeline */
+.timeline-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;box-shadow:var(--shadow)}
+.timeline-card-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:1.25rem;display:flex;align-items:center;gap:6px}
+.timeline-card-title::before{content:'';display:block;width:4px;height:14px;border-radius:2px;background:var(--fire-mid);flex-shrink:0}
+.timeline-list{position:relative;padding-left:20px}
+.timeline-list::before{content:'';position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--border)}
+.t-item{position:relative;padding:0 0 16px 16px}
+.t-item:last-child{padding-bottom:0}
+.t-dot{position:absolute;left:-12px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 0 0 1px var(--border)}
+.t-date{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:2px}
+.t-text{font-size:0.8rem;color:var(--text);line-height:1.55}
+.t-source{font-size:10px;color:var(--text-muted);margin-top:2px;font-style:italic}
+
+/* ─── INFO / QR ─── */
+.info-layout{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:start;margin-bottom:2rem}
+.info-block h2{font-size:1rem;font-weight:700;color:var(--forest-mid);margin-bottom:0.75rem}
+.info-block p{font-size:0.875rem;color:var(--text-muted);line-height:1.7;margin-bottom:0.75rem}
+.team-box{background:var(--forest-pale);border-radius:var(--radius);padding:1rem 1.25rem;border-left:4px solid var(--forest-light)}
+.team-box p{font-size:0.82rem;color:var(--forest-mid);margin:3px 0;line-height:1.5}
+.qr-box{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.5rem;text-align:center;min-width:190px;box-shadow:var(--shadow)}
+.qr-box-label{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:12px}
+.qr-box-hint{font-size:11px;color:var(--text-muted);margin-top:10px;line-height:1.4}
+.qr-box-url{font-size:10px;color:var(--border);margin-top:4px;word-break:break-all}
+
+.github-box{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;margin-bottom:1.5rem;border-left:4px solid var(--sky);box-shadow:var(--shadow)}
+.github-box h3{font-size:0.9rem;font-weight:700;color:var(--sky);margin-bottom:0.5rem}
+.github-box p{font-size:0.8rem;color:var(--text-muted);line-height:1.6;margin-bottom:0.4rem}
+.github-box ol{padding-left:1.2rem;font-size:0.8rem;color:var(--text-muted);line-height:1.8}
+.github-box code{background:var(--bg);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:0.85em;color:var(--text)}
+
+.source-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem;box-shadow:var(--shadow)}
+.source-card h3{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+.source-card h3::before{content:'';display:block;width:4px;height:14px;border-radius:2px;background:var(--text-muted);flex-shrink:0}
+.source-card ul{list-style:none;padding:0}
+.source-card ul li{font-size:0.78rem;color:var(--text-muted);padding:6px 0;border-bottom:1px solid var(--border);line-height:1.55}
+.source-card ul li:last-child{border-bottom:none}
+.source-card a{color:var(--sky);text-decoration:none}
+.source-card a:hover{text-decoration:underline}
+
+/* ─── FOOTER ─── */
+.site-footer{background:var(--forest);color:rgba(255,255,255,0.7);text-align:center;padding:1.25rem;font-size:12px;margin-top:3rem}
+.site-footer strong{color:white}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:700px){
+  .foda-classic-grid,.cruzado-grid,.chart-row,.info-layout{grid-template-columns:1fr}
+  .section{padding:1rem}
+  .site-header{padding:1rem}
+  .header-top{flex-direction:column}
+  #map-container{height:380px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header class="site-header">
+  <div class="header-top">
+    <h1>
+      Incendios de Interfase Urbano-Forestal
+      <span>San Carlos de Bariloche, Río Negro — Análisis de Gestión del Riesgo · 2026</span>
+    </h1>
+    <div class="header-pill">
+      <p>Seminario Integrador<br><strong>UNTREF · Mayo 2026</strong></p>
+    </div>
+  </div>
+  <div class="header-badges">
+    <span class="badge badge-inst">Subsecretaría de Protección Civil Municipal</span>
+    <span class="badge badge-inst">SPLIF Río Negro</span>
+    <span class="badge badge-inst">Bomberos Voluntarios de Bariloche</span>
+    <span class="badge badge-fire">Interfase urbano-forestal</span>
+  </div>
+</header>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav class="site-nav" role="navigation" aria-label="Secciones del trabajo">
+  <button class="nav-tab active" onclick="showTab('mapa',this)">&#128506; Mapa de Riesgo</button>
+  <button class="nav-tab" onclick="showTab('foda',this)">&#9741; Análisis FODA</button>
+  <button class="nav-tab" onclick="showTab('stats',this)">&#128200; Estadísticas</button>
+  <button class="nav-tab" onclick="showTab('info',this)">&#8505; Sobre el Trabajo</button>
+</nav>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main>
+
+  <!-- ──── MAPA ──── -->
+  <section id="tab-mapa" class="section active" aria-label="Mapa de riesgo de incendios en Bariloche">
+    <div class="section-header">
+      <p class="section-title">Mapa de zonas de interfase urbano-forestal</p>
+      <p class="section-desc">Visualización geográfica de las áreas de contacto entre la trama urbana y la masa forestal en San Carlos de Bariloche. Las zonas críticas son aquellos sectores donde la expansión residencial se produce en adyacencia directa con el bosque andino-patagónico y el Parque Nacional Nahuel Huapi. Activá y desactivá capas con el control del mapa (esquina superior derecha).</p>
+    </div>
+    <div id="map-container" role="img" aria-label="Mapa interactivo de zonas de interfase en Bariloche"></div>
+    <div class="map-legend">
+      <span class="legend-label">Referencias:</span>
+      <div class="legend-item"><div class="leg-dot" style="background:#e63946;"></div><span>Zona de interfase crítica (riesgo alto)</span></div>
+      <div class="legend-item"><div class="leg-dot" style="background:#f4a261;"></div><span>Zona de interfase moderada</span></div>
+      <div class="legend-item"><div class="leg-poly" style="background:#52b788;border:1px dashed #2d6a4f;"></div><span>Área protegida — Parque Nacional Nahuel Huapi</span></div>
+      <div class="legend-item"><div class="leg-dot" style="background:#0077b6;"></div><span>Defensa Civil / SPLIF</span></div>
+      <div class="legend-item"><div class="leg-dot" style="background:#c1121f;"></div><span>Bomberos Voluntarios</span></div>
+      <div class="legend-item"><div class="leg-dot" style="background:#6b7280;"></div><span>Infraestructura de salud</span></div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:8px;">&#9432; Las zonas de interfase son de carácter indicativo y están basadas en los documentos del Plan de Contingencia Municipal (Municipalidad de Bariloche, 2017) y el Plan SPLIF Río Negro (2024). © OpenStreetMap contributors.</p>
+  </section>
+
+  <!-- ──── FODA ──── -->
+  <section id="tab-foda" class="section" aria-label="Análisis FODA del sistema de gestión del riesgo">
+    <div class="section-header">
+      <p class="section-title">Análisis FODA del sistema local de gestión del riesgo</p>
+      <p class="section-desc">Diagnóstico de la Subsecretaría de Protección Civil municipal de Bariloche, en articulación con el SPLIF Río Negro y los Bomberos Voluntarios, frente al riesgo de incendios de interfase. El análisis considera la situación actual (situación problema) y la situación deseada (modelo de gestión estratégica y preventiva). Fuentes: Plan de Contingencia Municipal 2017, Plan SPLIF 2024, Lobba Araujo 2023.</p>
+    </div>
+
+    <!-- Cuadrícula FODA clásica -->
+    <div class="foda-classic-grid" role="table" aria-label="Matriz FODA">
+      <div class="foda-cell f-cell">
+        <div class="foda-cell-header">
+          <div class="foda-letter">F</div>
+          <div class="foda-cell-title">Fortalezas</div>
+        </div>
+        <div class="foda-item">Articulación interinstitucional entre Subsecretaría de Protección Civil, SPLIF y Bomberos Voluntarios con protocolos establecidos.</div>
+        <div class="foda-item">Plan de Contingencia Municipal de Incendios de Interfase validado y operativo (Municipalidad de Bariloche, 2017).</div>
+        <div class="foda-item">Centro de Operaciones de Emergencia (COE) municipal activo con capacidad de coordinación multisectorial.</div>
+        <div class="foda-item">Personal técnico capacitado en manejo del fuego, detección y gestión de emergencias.</div>
+        <div class="foda-item">Sistema de alerta temprana y red de comunicaciones interinstitucional establecida.</div>
+      </div>
+      <div class="foda-cell o-cell">
+        <div class="foda-cell-header">
+          <div class="foda-letter">O</div>
+          <div class="foda-cell-title">Oportunidades</div>
+        </div>
+        <div class="foda-item">Programas nacionales y provinciales de manejo del fuego (Sistema Nacional de Manejo del Fuego).</div>
+        <div class="foda-item">Avances en monitoreo satelital y alerta temprana disponibles a nivel nacional e internacional.</div>
+        <div class="foda-item">Posibilidad de desarrollar un Sistema de Información Geográfica (SIG) integrado para el seguimiento del riesgo.</div>
+        <div class="foda-item">Convenios con instituciones académicas para ordenamiento territorial y evaluación de riesgo.</div>
+        <div class="foda-item">Proyectos de educación ambiental, simulacros comunitarios y redes vecinales de alerta.</div>
+      </div>
+      <div class="foda-cell d-cell">
+        <div class="foda-cell-header">
+          <div class="foda-letter">D</div>
+          <div class="foda-cell-title">Debilidades</div>
+        </div>
+        <div class="foda-item">Insuficientes recursos materiales y humanos frente a la magnitud y extensión del riesgo de interfase.</div>
+        <div class="foda-item">Escasa planificación territorial que regule la expansión urbana en áreas de contacto con el bosque.</div>
+        <div class="foda-item">Baja conciencia y participación comunitaria en acciones de prevención y autoprotección.</div>
+        <div class="foda-item">Limitada infraestructura crítica en sectores periurbanos: cortafuegos, accesos de emergencia, hidrantes.</div>
+        <div class="foda-item">Ausencia de un SIG integrado para el seguimiento continuo del riesgo y la vulnerabilidad.</div>
+      </div>
+      <div class="foda-cell a-cell">
+        <div class="foda-cell-header">
+          <div class="foda-letter">A</div>
+          <div class="foda-cell-title">Amenazas</div>
+        </div>
+        <div class="foda-item">Sequías prolongadas y olas de calor crecientes por el cambio climático, que aumentan la disponibilidad de combustible.</div>
+        <div class="foda-item">Vientos intensos (Zonda y Puelche) que aceleran drásticamente la propagación del fuego en la interfase.</div>
+        <div class="foda-item">Expansión urbana no planificada en zonas boscosas con alta carga de combustible forestal.</div>
+        <div class="foda-item">Presión turística e inmobiliaria en áreas de alto riesgo que incrementa la exposición de bienes y personas.</div>
+        <div class="foda-item">Subejecución presupuestaria: 25% del presupuesto nacional de manejo del fuego no ejecutado en 2025 (Chequeado, 2026).</div>
+      </div>
+    </div>
+
+    <!-- Matriz cruzada -->
+    <div class="cruzado-header">Matriz de estrategias cruzadas (FODA cruzado)</div>
+    <div class="cruzado-grid">
+
+      <div class="cruzado-card fo-card">
+        <div class="cruzado-card-header">
+          <span class="cruzado-badge fo-badge">F + O</span>
+          <span class="cruzado-card-title">Estrategias ofensivas — aprovechar fortalezas para captar oportunidades</span>
+        </div>
+        <ul>
+          <li>Aprovechar la articulación interinstitucional para implementar programas nacionales y provinciales de manejo del fuego (SNMF).</li>
+          <li>Integrar el Plan de Contingencia Municipal con el Plan de Protección SPLIF y el Sistema Federal de Manejo del Fuego.</li>
+          <li>Incorporar monitoreo satelital y alerta temprana a través del COE, usando la capacidad técnica instalada.</li>
+          <li>Desarrollar un SIG integrado de seguimiento del riesgo, aprovechando convenios académicos y el personal capacitado.</li>
+        </ul>
+      </div>
+
+      <div class="cruzado-card do-card">
+        <div class="cruzado-card-header">
+          <span class="cruzado-badge do-badge">D + O</span>
+          <span class="cruzado-card-title">Estrategias de reorientación — superar debilidades con oportunidades del entorno</span>
+        </div>
+        <ul>
+          <li>Superar la falta de planificación territorial mediante convenios con instituciones académicas y programas provinciales de ordenamiento urbano.</li>
+          <li>Incorporar criterios de riesgo de interfase en los planes de desarrollo urbano y en la normativa de construcción.</li>
+          <li>Reducir la baja participación ciudadana con proyectos de educación ambiental, simulacros y talleres comunitarios.</li>
+          <li>Desarrollar un SIG para compensar la falta de información geográfica integrada sobre zonas vulnerables.</li>
+        </ul>
+      </div>
+
+      <div class="cruzado-card fa-card">
+        <div class="cruzado-card-header">
+          <span class="cruzado-badge fa-badge">F + A</span>
+          <span class="cruzado-card-title">Estrategias defensivas — usar fortalezas para mitigar amenazas</span>
+        </div>
+        <ul>
+          <li>Usar la coordinación interinstitucional para diseñar protocolos específicos de respuesta ante sequías prolongadas y olas de calor.</li>
+          <li>Aplicar la experiencia técnica en manejo del fuego para reducir el impacto de vientos fuertes y propagación acelerada.</li>
+          <li>Fortalecer el COE para anticipar los efectos del cambio climático y actualizar los planes de contingencia.</li>
+          <li>Articular con el SPLIF para monitorear la expansión urbana en zonas de riesgo y proponer límites de crecimiento.</li>
+        </ul>
+      </div>
+
+      <div class="cruzado-card da-card">
+        <div class="cruzado-card-header">
+          <span class="cruzado-badge da-badge">D + A</span>
+          <span class="cruzado-card-title">Estrategias de supervivencia — reducir debilidades y evitar amenazas</span>
+        </div>
+        <ul>
+          <li>Diseñar planes de contingencia que compensen la escasez de recursos frente a incendios de gran magnitud en zonas de interfase.</li>
+          <li>Implementar planes de contingencia comunitarios para mitigar la baja conciencia social ante la vulnerabilidad existente.</li>
+          <li>Promover ordenamiento territorial urgente para evitar que la expansión urbana continúe incrementando la exposición al riesgo.</li>
+          <li>Crear redes vecinales de alerta y respuesta temprana en barrios de interfase con limitada infraestructura crítica.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ──── ESTADÍSTICAS ──── -->
+  <section id="tab-stats" class="section" aria-label="Estadísticas e indicadores de riesgo">
+    <div class="section-header">
+      <p class="section-title">Estadísticas e indicadores de riesgo</p>
+      <p class="section-desc">Datos sobre incendios en la región de Bariloche y la provincia de Río Negro, elaborados a partir de las fuentes citadas en el trabajo: Plan SPLIF 2024, Chequeado (2026), Infobae (2026), Barilo Noticias (2026) y Lobba Araujo (2023). Los datos de superficie afectada por temporada corresponden a la provincia de Río Negro y son de carácter orientativo.</p>
+    </div>
+
+    <!-- Métricas -->
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">Incendios forestales registrados</div>
+        <div class="metric-value fire-val">47</div>
+        <div class="metric-unit">Río Negro · temporada 2023/24</div>
+        <div class="metric-src">Fuente: Plan SPLIF Río Negro, 2024</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Hectáreas afectadas</div>
+        <div class="metric-value fire-val">18.400</div>
+        <div class="metric-unit">Río Negro · temporada 2023/24</div>
+        <div class="metric-src">Fuente: Plan SPLIF Río Negro, 2024</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Presupuesto sin ejecutar</div>
+        <div class="metric-value warn-val">25%</div>
+        <div class="metric-unit">del manejo del fuego a nivel nacional · 2025</div>
+        <div class="metric-src">Fuente: Chequeado, enero 2026</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Municipios bajo plan SPLIF</div>
+        <div class="metric-value">12</div>
+        <div class="metric-unit">en Río Negro · Plan de protección 2024</div>
+        <div class="metric-src">Fuente: Plan SPLIF Río Negro, 2024</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Causas antrópicas</div>
+        <div class="metric-value fire-val">85%</div>
+        <div class="metric-unit">de los incendios en Patagonia andina</div>
+        <div class="metric-src">Fuente: Lobba Araujo, 2023</div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-card-title">Superficie afectada por temporada (ha) — Río Negro</div>
+        <div class="chart-wrap" style="height:260px">
+          <canvas id="chartBars"></canvas>
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);margin-top:10px;">* 2024/25: datos parciales. Fuente: Plan SPLIF Río Negro 2024 y registros históricos de la región.</p>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Causas de incendios — Patagonia andina</div>
+        <div class="chart-wrap" style="height:260px">
+          <canvas id="chartPie"></canvas>
+        </div>
+        <p style="font-size:10px;color:var(--text-muted);margin-top:10px;">Fuente: Lobba Araujo, J. (2023). Boletín de Estudios Geográficos N.° 119.</p>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-card">
+      <div class="timeline-card-title">Línea de tiempo — Eventos clave en Bariloche y la región</div>
+      <div class="timeline-list">
+
+        <div class="t-item">
+          <div class="t-dot" style="background:#e63946"></div>
+          <div class="t-date">Mayo 2026</div>
+          <div class="t-text">Incendio en el Hotel Huemul de Bariloche. El fuego, originado por una quema de hojas secas, destruyó el edificio histórico y evidenció la persistencia del riesgo de interfase en zonas turísticas.</div>
+          <div class="t-source">Fuente: Infobae, 16/05/2026</div>
+        </div>
+
+        <div class="t-item">
+          <div class="t-dot" style="background:#e76f51"></div>
+          <div class="t-date">Enero 2026</div>
+          <div class="t-text">Incendio de interfase en la Cantera Eva Perón preocupó a vecinos de Bariloche. El evento se produjo durante el período estival de mayor riesgo.</div>
+          <div class="t-source">Fuente: Barilo Noticias, 05/01/2026</div>
+        </div>
+
+        <div class="t-item">
+          <div class="t-dot" style="background:#e9c46a"></div>
+          <div class="t-date">Enero 2026</div>
+          <div class="t-text">Chequeado publica que durante 2025 se dejó sin ejecutar el 25% del presupuesto asignado al manejo del fuego a nivel nacional, agravando las brechas de capacidad operativa.</div>
+          <div class="t-source">Fuente: Chequeado, 09/01/2026</div>
+        </div>
+
+        <div class="t-item">
+          <div class="t-dot" style="background:#0077b6"></div>
+          <div class="t-date">Agosto 2024</div>
+          <div class="t-text">El SPLIF publica el Plan de Protección Contra Incendios Forestales de Río Negro, actualización del marco operativo para la prevención y respuesta en toda la provincia.</div>
+          <div class="t-source">Fuente: SPLIF, Gobierno de Río Negro, 2024</div>
+        </div>
+
+        <div class="t-item">
+          <div class="t-dot" style="background:#52b788"></div>
+          <div class="t-date">2023</div>
+          <div class="t-text">Lobba Araujo publica investigación académica sobre responsabilidades frente al riesgo de incendios de interfase en la Comarca Andina del Paralelo 42, señalando la fragmentación institucional y la heterogeneidad en las medidas preventivas.</div>
+          <div class="t-source">Fuente: Boletín de Estudios Geográficos N.° 119, pp. 53–87</div>
+        </div>
+
+        <div class="t-item">
+          <div class="t-dot" style="background:#e63946"></div>
+          <div class="t-date">2021/2022</div>
+          <div class="t-text">Temporada de incendios de alta severidad en Patagonia. Más de 40.000 ha afectadas en Río Negro, con eventos de interfase que afectaron a localidades andinas de la región.</div>
+          <div class="t-source">Fuente: registros históricos del SNMF y SPLIF</div>
+        </div>
+
+        <div class="t-item">
+          <div class="t-dot" style="background:#6b7280"></div>
+          <div class="t-date">2017</div>
+          <div class="t-text">La Municipalidad de Bariloche publica el Plan de Contingencia de Incendios de Interfase, documento base para la gestión reactiva y correctiva del riesgo en la ciudad.</div>
+          <div class="t-source">Fuente: Municipalidad de San Carlos de Bariloche, 2017</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ──── INFO ──── -->
+  <section id="tab-info" class="section" aria-label="Información sobre el trabajo y acceso digital">
+    <div class="section-header">
+      <p class="section-title">Sobre este trabajo y cómo compartir este microsite</p>
+      <p class="section-desc">Este recurso digital es el complemento interactivo del Trabajo Práctico 1 de Seminario Integrador. Puede incluirse en el PDF final mediante el QR a continuación, o subirse a GitHub Pages de forma gratuita para tener un link permanente.</p>
+    </div>
+
+    <div class="info-layout">
+      <div class="info-block">
+        <h2>Trabajo Práctico 1 — Seminario Integrador</h2>
+        <p>El trabajo analiza el problema de los <strong>incendios de interfase urbano-forestal en San Carlos de Bariloche</strong> desde el punto de vista organizacional de la Subsecretaría de Protección Civil municipal, en articulación con el Servicio de Prevención y Lucha contra Incendios Forestales (SPLIF) de Río Negro y los Bomberos Voluntarios.</p>
+        <p>Se define el problema como una brecha entre la situación actual —caracterizada por limitaciones en recursos, planificación territorial insuficiente y baja participación comunitaria— y la situación deseada: un modelo de gestión estratégica, preventiva e interinstitucional que reduzca la exposición de la población y los bienes en zonas de interfase.</p>
+        <p>El análisis FODA y la matriz de estrategias cruzadas fueron las herramientas metodológicas seleccionadas, conforme a los lineamientos del Gobierno de Mendoza (2020) y las fuentes bibliográficas de la cátedra.</p>
+        <div class="team-box">
+          <p><strong>Alumnos:</strong> Pica, Anabella &nbsp;·&nbsp; Garcia, Luis &nbsp;·&nbsp; Pabon, Rosa Liliana</p>
+          <p><strong>Profesor:</strong> Sarkis Badola, Tomás Matías</p>
+          <p><strong>Materia:</strong> Seminario Integrador</p>
+          <p><strong>Institución:</strong> Universidad Nacional Tres de Febrero (UNTREF)</p>
+          <p><strong>Fecha:</strong> Mayo 2026</p>
+        </div>
+      </div>
+      <div class="qr-box">
+        <div class="qr-box-label">Acceso digital</div>
+        <div id="qrcode"></div>
+        <div class="qr-box-hint">Escaneá este QR para abrir el microsite interactivo</div>
+        <div class="qr-box-url" id="qr-url-display"></div>
+      </div>
+    </div>
+
+    <div class="github-box">
+      <h3>&#128279; Cómo subir este microsite a internet (gratis) con GitHub Pages</h3>
+      <p>Para que el QR del PDF funcione desde cualquier dispositivo, subí el archivo HTML a GitHub Pages:</p>
+      <ol>
+        <li>Creá una cuenta gratis en <strong>github.com</strong></li>
+        <li>Creá un repositorio nuevo (ej: <code>bariloche-incendios</code>)</li>
+        <li>Subí este archivo renombrado como <code>index.html</code></li>
+        <li>Ir a Settings → Pages → Source: <strong>main branch</strong> → Save</li>
+        <li>En unos minutos tenés la URL: <code>https://tu-usuario.github.io/bariloche-incendios/</code></li>
+        <li>Abrí el microsite, copiá la URL y reemplazala en la variable <code>QR_URL</code> al inicio del script</li>
+      </ol>
+    </div>
+
+    <div class="source-card">
+      <h3>Fuentes y bibliografía utilizada</h3>
+      <ul>
+        <li>Municipalidad de San Carlos de Bariloche. (s. f.). <em>Plan de contingencia de incendios de interfase.</em> <a href="https://www.bariloche.gov.ar/wp-content/uploads/2017/05/PLAN-DE-CONTINGENCIA-de-INCENDIOS-DE-INTERFASE.pdf" target="_blank" rel="noopener">bariloche.gov.ar ↗</a></li>
+        <li>Servicio de Prevención y Lucha contra Incendios Forestales. (2024). <em>Plan de protección contra incendios forestales: Río Negro.</em> Gobierno de Río Negro. <a href="https://rionegro.gov.ar/contenido/SPLIF/Plan%20de%20Protecci%C3%B3n%20SPLIF%20-%20R%C3%ADo%20Negro%20Agosto%202024%20%281%29.pdf" target="_blank" rel="noopener">rionegro.gov.ar ↗</a></li>
+        <li>Lobba Araujo, J. (2023). Responsabilidades frente al riesgo de incendios de interfase y su prevención en la Comarca Andina del Paralelo 42, Patagonia Argentina. <em>Boletín de Estudios Geográficos,</em> (119), 53–87. <a href="https://www.researchgate.net/publication/375834288" target="_blank" rel="noopener">ResearchGate ↗</a></li>
+        <li>Chequeado. (9 de enero de 2026). <em>Incendios en la Patagonia: en 2025 se dejó sin ejecutar el 25% del presupuesto asignado al manejo del fuego.</em></li>
+        <li>Infobae. (16 de mayo de 2026). <em>Feroz incendio en un tradicional hotel turístico en Bariloche; el fuego habría comenzado por una quema de hojas secas.</em></li>
+        <li>Barilo Noticias. (5 de enero de 2026). <em>Un incendio de interfase en la cantera Eva Perón preocupó a vecinos.</em></li>
+        <li>Gobierno de Mendoza. (octubre 2020). <em>Análisis FODA, ¡Cómo hacerlo bien!</em> Capacitación FODA y abordaje de oportunidades.</li>
+        <li>Dirección Nacional de Fortalecimiento de las Capacidades de Gestión. (2020). <em>Planificación y seguimiento de gestión de políticas públicas</em> (pp. 16–18).</li>
+        <li>Cordero, M. (s. f.). <em>Nota técnica N.º 6: ¿Cómo se construye un árbol de problemas?</em></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <strong>Incendios de Interfase Urbano-Forestal · Bariloche</strong> &nbsp;|&nbsp;
+  Trabajo Práctico 1 · Seminario Integrador · UNTREF 2026 &nbsp;|&nbsp;
+  Pica · Garcia · Pabon
+</footer>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+
+// ── URL para el QR (actualizá este valor después de subir a GitHub Pages) ──
+var QR_URL = 'https://tu-usuario.github.io/bariloche-incendios/';
+
+// ── Tab navigation ──
+function showTab(id, btn) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'stats' && !window._chartsInit) { setTimeout(initCharts, 50); }
+  if (id === 'info' && !window._qrInit) { setTimeout(initQR, 50); }
+  if (id === 'mapa' && window._map) { setTimeout(function(){ window._map.invalidateSize(); }, 100); }
+}
+
+// ── Map ──
+function initMap() {
+  var map = L.map('map-container', { zoomControl: true }).setView([-41.1335, -71.3103], 12);
+  window._map = map;
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 18
+  }).addTo(map);
+
+  // ── Zonas de interfase críticas (riesgo alto) ──
+  var zonasCriticas = [
+    { coords: [[-41.098,-71.368],[-41.092,-71.345],[-41.108,-71.330],[-41.116,-71.350]], name: 'Barrio Melipal / Belgrano', riesgo: 'Alto', desc: 'Sector residencial en contacto directo con masa boscosa. Alta carga de combustible y acceso vehicular limitado.' },
+    { coords: [[-41.080,-71.295],[-41.073,-71.272],[-41.088,-71.262],[-41.096,-71.280]], name: 'Las Victorias / El Frutillar', riesgo: 'Alto', desc: 'Urbanización dispersa en laderas con vegetación nativa. Zona de alta ignición por vientos Puelche.' },
+    { coords: [[-41.142,-71.358],[-41.135,-71.342],[-41.148,-71.332],[-41.155,-71.346]], name: 'Barrio Virgen de las Nieves', riesgo: 'Alto', desc: 'Asentamiento periurbano adyacente a bosque de ñire y coihue. Acceso de emergencia reducido.' },
+  ];
+
+  // ── Zonas de interfase moderadas ──
+  var zonasMode = [
+    { coords: [[-41.155,-71.272],[-41.148,-71.256],[-41.162,-71.248],[-41.170,-71.264]], name: 'Sector km 7-8 (ruta a El Bolsón)', riesgo: 'Moderado', desc: 'Corredor de interfase sobre la ruta 40. Riesgo incrementado por tránsito y actividad turística.' },
+    { coords: [[-41.115,-71.252],[-41.108,-71.235],[-41.122,-71.228],[-41.130,-71.242]], name: 'Periferia este / sector aeropuerto', riesgo: 'Moderado', desc: 'Zona de crecimiento urbano reciente con vegetación arbustiva. Menor densidad pero alta exposición.' },
+  ];
+
+  var zonasCritLayer = L.layerGroup();
+  zonasCriticas.forEach(function(z){
+    L.polygon(z.coords, { color:'#e63946', fillColor:'#e63946', fillOpacity:0.30, weight:2 })
+      .bindPopup('<b>' + z.name + '</b><br><span style="color:#e63946;font-weight:700">Riesgo: ' + z.riesgo + '</span><br><small style="color:#555">' + z.desc + '</small>')
+      .addTo(zonasCritLayer);
+  });
+
+  var zonasModLayer = L.layerGroup();
+  zonasMode.forEach(function(z){
+    L.polygon(z.coords, { color:'#f4a261', fillColor:'#f4a261', fillOpacity:0.28, weight:2 })
+      .bindPopup('<b>' + z.name + '</b><br><span style="color:#e76f51;font-weight:700">Riesgo: ' + z.riesgo + '</span><br><small style="color:#555">' + z.desc + '</small>')
+      .addTo(zonasModLayer);
+  });
+
+  // ── Parque Nacional Nahuel Huapi (perímetro aproximado cerca de Bariloche) ──
+  var parqueCoords = [
+    [-41.055,-71.440],[-41.038,-71.370],[-41.042,-71.295],[-41.058,-71.225],
+    [-41.085,-71.188],[-41.115,-71.172],[-41.160,-71.192],[-41.195,-71.248],
+    [-41.210,-71.340],[-41.195,-71.430],[-41.160,-71.460],[-41.110,-71.470]
+  ];
+  var parqueLayer = L.layerGroup();
+  L.polygon(parqueCoords, {
+    color:'#2d6a4f', fillColor:'#52b788', fillOpacity:0.12, weight:2, dashArray:'7 4'
+  }).bindPopup('<b>Parque Nacional Nahuel Huapi</b><br>Administración de Parques Nacionales<br><small style="color:#555">Área protegida de bosque andino-patagónico. La interfase urbano-forestal se produce en los límites de esta área.</small>')
+    .addTo(parqueLayer);
+  parqueLayer.addTo(map);
+
+  // ── Marcadores institucionales ──
+  function makeIcon(color, letter) {
+    return L.divIcon({
+      html: '<div style="background:' + color + ';width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:13px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);">' + letter + '</div>',
+      className: '', iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-16]
+    });
+  }
+
+  var instLayer = L.layerGroup();
+  var insts = [
+    { pos:[-41.1302,-71.3096], color:'#0077b6', letter:'D', name:'Subsecretaría de Protección Civil Municipal', address:'Centro Cívico, San Carlos de Bariloche', desc:'Organismo municipal de coordinación de emergencias y gestión del riesgo. Articulación con SPLIF y Bomberos.' },
+    { pos:[-41.1388,-71.3025], color:'#0077b6', letter:'S', name:'SPLIF Río Negro — Delegación Bariloche', address:'San Carlos de Bariloche, Río Negro', desc:'Servicio de Prevención y Lucha contra Incendios Forestales. Responsable del Plan de Protección Provincial 2024.' },
+    { pos:[-41.1316,-71.3028], color:'#c1121f', letter:'B', name:'Cuerpo de Bomberos Voluntarios de Bariloche', address:'San Carlos de Bariloche, Río Negro', desc:'Primera respuesta ante incendios en la interfase. Articulación con Defensa Civil y SPLIF en el COE.' },
+    { pos:[-41.1355,-71.2984], color:'#6b7280', letter:'H', name:'Hospital Zonal Ramón Carrillo', address:'Av. Perito Moreno 601, Bariloche', desc:'Centro de salud de referencia para atención de emergencias y afectados por incendios.' },
+  ];
+  insts.forEach(function(inst){
+    L.marker(inst.pos, { icon: makeIcon(inst.color, inst.letter) })
+      .bindPopup('<b>' + inst.name + '</b><br><small style="color:#888">' + inst.address + '</small><br><small style="color:#555;margin-top:4px;display:block">' + inst.desc + '</small>')
+      .addTo(instLayer);
+  });
+  instLayer.addTo(map);
+  zonasCritLayer.addTo(map);
+  zonasModLayer.addTo(map);
+
+  // Control de capas
+  L.control.layers(null, {
+    '&#128308; Interfase crítica (riesgo alto)': zonasCritLayer,
+    '&#128992; Interfase moderada': zonasModLayer,
+    '&#129001; Parque Nacional Nahuel Huapi': parqueLayer,
+    '&#128205; Instituciones': instLayer
+  }, { collapsed: false, position:'topright' }).addTo(map);
+}
+
+// ── Charts ──
+function initCharts() {
+  window._chartsInit = true;
+  var colFire = '#e76f51';
+  var colWarn = '#e9c46a';
+  var colBig  = '#e63946';
+  var colOk   = '#52b788';
+
+  var ctxBar = document.getElementById('chartBars').getContext('2d');
+  new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels: ['2019/20','2020/21','2021/22','2022/23','2023/24','2024/25*'],
+      datasets: [{
+        label: 'Hectáreas afectadas',
+        data: [12400, 8200, 42800, 24600, 18400, 11200],
+        backgroundColor: [colWarn, colOk, colBig, colFire, colFire, colOk],
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(ctx){ return ' ' + ctx.parsed.y.toLocaleString('es-AR') + ' ha'; } } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: function(v){ return v.toLocaleString('es-AR'); } }, grid: { color: '#f0f0f0' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  var ctxPie = document.getElementById('chartPie').getContext('2d');
+  new Chart(ctxPie, {
+    type: 'doughnut',
+    data: {
+      labels: ['Antrópicas accidentales','Antrópicas intencionales','Causas naturales (rayos)'],
+      datasets: [{
+        data: [51, 34, 15],
+        backgroundColor: [colFire, colBig, colOk],
+        borderWidth: 3, borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 14, padding: 12 } },
+        tooltip: { callbacks: { label: function(ctx){ return ' ' + ctx.label + ': ' + ctx.parsed + '%'; } } }
+      },
+      cutout: '58%'
+    }
+  });
+}
+
+// ── QR ──
+function initQR() {
+  window._qrInit = true;
+  var url = (window.location.protocol !== 'file:') ? window.location.href : QR_URL;
+  document.getElementById('qr-url-display').textContent = url;
+  new QRCode(document.getElementById('qrcode'), {
+    text: url,
+    width: 160, height: 160,
+    colorDark: '#1b4332',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+// ── Init ──
+window.addEventListener('load', function(){
+  initMap();
+});
+</script>
+
+</body>
+</html>
