@@ -907,7 +907,7 @@ function initMap() {
   window._map = map;
   
   // Encajar automáticamente todo el ejido urbano y puntos calientes de Bariloche
-  map.fitBounds([[-41.180, -71.420], [-41.127, -71.250]], { padding: [15, 15] });
+  map.fitBounds([[-41.180, -71.430], [-41.127, -71.250]], { padding: [15, 15] });
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -1052,19 +1052,19 @@ function initMap() {
 
   var instLayer = L.layerGroup();
   var insts = [
-    { pos:[-41.1302,-71.3096], color:'#0077b6', letter:'D',
+    { pos:[-41.133706, -71.310917], color:'#0077b6', letter:'D',
       name:'Subsecretaria de Proteccion Civil Municipal',
       address:'Centro Civico, San Carlos de Bariloche',
       desc:'Organismo municipal de coordinacion de emergencias. Articula con SPLIF y Bomberos en el COE. Plan de Contingencia 2017.' },
-    { pos:[-41.1420,-71.3050], color:'#0077b6', letter:'S',
+    { pos:[-41.129903, -71.424775], color:'#0077b6', letter:'S',
       name:'SPLIF Rio Negro — Delegacion Bariloche',
       address:'San Carlos de Bariloche, Rio Negro',
       desc:'Servicio de Prevencion y Lucha contra Incendios Forestales. Plan de Proteccion Provincial (agosto 2024).' },
-    { pos:[-41.1330,-71.3050], color:'#c1121f', letter:'B',
+    { pos:[-41.147664, -71.298821], color:'#c1121f', letter:'B',
       name:'Bomberos Voluntarios de Bariloche — Cuartel Central',
       address:'San Carlos de Bariloche, Rio Negro',
       desc:'Primera respuesta ante incendios de interfase. Articulacion con SPLIF y Defensa Civil en el COE.' },
-    { pos:[-41.1355,-71.3010], color:'#6b7280', letter:'H',
+    { pos:[-41.136398, -71.300022], color:'#6b7280', letter:'H',
       name:'Hospital Zonal Ramon Carrillo',
       address:'Av. Perito Moreno 601, Bariloche',
       desc:'Centro de salud de referencia para emergencias y afectados por incendios de interfase.' }
